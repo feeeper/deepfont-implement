@@ -6,17 +6,18 @@ import numpy as np
 from pathlib import Path
 from matplotlib import pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
+from PIL.ImageFont import FreeTypeFont
 
 def get_random_text(len):
     letters = string.ascii_letters
     return ''.join(random.choice(letters) for i in range(len))
 
 
-def create_image(size, message, font):
+def create_image(size, message, font: FreeTypeFont):
     width, height = size
     image = Image.new('RGB', size, 'white')
     draw = ImageDraw.Draw(image)
-    w, h = font.getsize(message)
+    _, _, w, h = font.getbbox(message)
     draw.text(((width-w)/2, (height-h)/2), message, font=font, fill='black')
     return image
 

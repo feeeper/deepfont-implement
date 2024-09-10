@@ -2,6 +2,7 @@
 # import matplotlib.cm as cm
 # import matplotlib.pylab as plt
 import os
+from pathlib import Path
 import random
 import PIL
 import cv2
@@ -19,6 +20,8 @@ from tensorflow.keras.layers import BatchNormalization
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D , UpSampling2D ,Conv2DTranspose
 from keras import backend as K
+from tqdm import tqdm
+
 
 def pil_image(img_path):
     pil_im =PIL.Image.open(img_path).convert('L')
@@ -100,24 +103,33 @@ def create_model():
     model.add(Dense(4096,activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(2383,activation='relu'))
-    model.add(Dense(5, activation='softmax'))
+    model.add(Dense(10, activation='softmax'))
   
     return model
 
 
-def main(batch_size=128,epochs=25,data_path="train_data/"):
+def main(batch_size=128, epochs=25, data_path="train_data/"):
     data=[]
     labels=[]
-    imagePaths = sorted(list(paths.list_images(data_path)))
+    imagePaths = sorted(list(paths.list_images(data_path))) 
     random.seed(42)
     random.shuffle(imagePaths)
 
-    augument=["blur","noise","affine","gradient"]
-    a=itertools.combinations(augument, 4)
+    augument = ["blur","noise","affine","gradient"]
+    a = itertools.combinations(augument, 4)
+    k = 0
 
-    for imagePath in imagePaths:
+    classes = sorted([x.stem for x in Path(data_path).iterdir()])
+
+    for imagePath in tqdm(imagePaths):
+        # print(f'{classes=}')
+        # print(f'{imagePath=}')
         label = imagePath.split(os.path.sep)[-2]
-        label = conv_label(label)
+        # print(f'{label=}')
+        # label = conv_label(label))
+        label = classes.index(label)        
+        # print(f'conv_label(label)={label}')
+        # break
         pil_img = pil_image(imagePath)
         #imshow(pil_img)
         
@@ -162,8 +174,8 @@ def main(batch_size=128,epochs=25,data_path="train_data/"):
     # the data for training and the remaining 25% for testing
     (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.25, random_state=42)
     # convert the labels from integers to vectors
-    trainY = to_categorical(trainY, num_classes=5)
-    testY = to_categorical(testY, num_classes=5)
+    trainY = to_categorical(trainY, num_classes=10)
+    testY = to_categorical(testY, num_classes=10)
 
     aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,horizontal_flip=True)
     K.set_image_data_format('channels_last')
@@ -195,6 +207,7 @@ def main(batch_size=128,epochs=25,data_path="train_data/"):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Put training parameters')
     parser.add_argument('--epochs','-e',required=True)
-
+    parser.add_argument('--train_data','-t', default='train_data/')
+    
     args = parser.parse_args()
-    main(epochs=int(args.epochs))
+    main(epochs=int(args.epochs), data_path=args.train_data)
