@@ -23,6 +23,9 @@ from keras import backend as K
 from tqdm import tqdm
 
 
+NUM_CLASSES = 10
+
+
 def pil_image(img_path):
     pil_im =PIL.Image.open(img_path).convert('L')
     pil_im=pil_im.resize((105,105))
@@ -103,7 +106,7 @@ def create_model():
     model.add(Dense(4096,activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(2383,activation='relu'))
-    model.add(Dense(10, activation='softmax'))
+    model.add(Dense(NUM_CLASSES, activation='softmax'))
   
     return model
 
@@ -126,7 +129,7 @@ def main(batch_size=128, epochs=25, data_path="train_data/"):
         # print(f'{imagePath=}')
         label = imagePath.split(os.path.sep)[-2]
         # print(f'{label=}')
-        # label = conv_label(label))
+        # label = conv_label(label)
         label = classes.index(label)        
         # print(f'conv_label(label)={label}')
         # break
@@ -174,8 +177,8 @@ def main(batch_size=128, epochs=25, data_path="train_data/"):
     # the data for training and the remaining 25% for testing
     (trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.25, random_state=42)
     # convert the labels from integers to vectors
-    trainY = to_categorical(trainY, num_classes=10)
-    testY = to_categorical(testY, num_classes=10)
+    trainY = to_categorical(trainY, num_classes=NUM_CLASSES)
+    testY = to_categorical(testY, num_classes=NUM_CLASSES)
 
     aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,height_shift_range=0.1, shear_range=0.2, zoom_range=0.2,horizontal_flip=True)
     K.set_image_data_format('channels_last')
@@ -208,6 +211,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Put training parameters')
     parser.add_argument('--epochs','-e',required=True)
     parser.add_argument('--train_data','-t', default='train_data/')
+    parser.add_argument('--batch-size', '-s', type=int, default=128)
     
     args = parser.parse_args()
-    main(epochs=int(args.epochs), data_path=args.train_data)
+    main(epochs=int(args.epochs), data_path=args.train_data, batch_size=args.batch_size)
