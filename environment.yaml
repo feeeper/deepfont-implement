@@ -6,8 +6,9 @@ dependencies:
   - python=3.10.12
   - pytorch=*
   - torchvision=*
-  - nvidia::cudatoolkit=11.3
+  - nvidia::cudatoolkit=*  # 11.3
   # - pytorch=2.1.20+xpu
+  - tqdm=*
   - pip=*
   - pip:
     - tensorflow==2.9.2
